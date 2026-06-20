@@ -94,7 +94,7 @@ function addNote() {
     notesListEl.prepend(el);
     const textarea = el.querySelector(`textarea[data-id="${id}"]`);
     if (textarea) {
-        
+
         // new notes are empty so width is full;
         autoResize(textarea);
         textarea.focus();
@@ -121,17 +121,8 @@ function autoResize(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
 
-    // width: only adjust when there is content; empty textareas keep full width
-    if (!textarea.value || textarea.value.trim() === '') {
-        textarea.style.width = '100%';
-        return;
-    }
-
-    textarea.style.width = 'auto';
-    const padding = 24; 
-    const maxWidth = Math.max(document.body.clientWidth - padding, 120);
-    const newWidth = Math.min(textarea.scrollWidth + 2, maxWidth);
-    textarea.style.width = newWidth + 'px';
+    // keep textarea full width inside its card container
+    textarea.style.width = '100%';
 }
 
 function autoShrinkToContent(textarea) {
