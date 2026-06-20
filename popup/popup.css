@@ -7,10 +7,9 @@ body {
     color: #111;
 }
 
-h2 {
+h1 {
     margin: 0;
-    font-size: 18px;
-    text-align: center;
+    color: #5B3824;
 }
 
 .header {
@@ -20,12 +19,13 @@ h2 {
     gap: 8px;
     margin-bottom: 10px;
 }
-
+    
 
 .controls {
     display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 0;
 }
 
 .icon-btn {
@@ -36,15 +36,22 @@ h2 {
     height: 34px;
     border-radius: 8px;
     border: none;
-    background: #2563eb;
-    color: #fff;
+    background: #F3E6D6; 
+    color: #5B3824; 
     cursor: pointer;
     padding: 4px;
 }
 
 .icon-btn svg { display: block; }
 
-.icon-btn:hover { background: #1d4ed8; }
+.icon-btn:hover { background: #E7D2B9; }
+
+.delete-all {
+    background: #8B5E3C; 
+    color: #ffffff;
+}
+
+.delete-all:hover { background: #7A4F31; }
 
 #notes-list {
     display: flex;
@@ -76,8 +83,8 @@ h2 {
 
 .note-delete {
     border: none;
-    background: #ef4444;
-    color: #fff;
+    background: #8B5E3C;
+    color: #ffffff;
     width: 34px;
     height: 34px;
     border-radius: 8px;
@@ -88,4 +95,4 @@ h2 {
 
 .note-delete svg { display: block; }
 
-.note-delete:hover { background: #dc2626; }
+.note-delete:hover { background: #7A4F31; }

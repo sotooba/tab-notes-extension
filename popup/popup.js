@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'tabNotes.notes';
 
 const addButton = document.getElementById('add-note');
+const deleteAllButton = document.getElementById('delete-all');
 const notesListEl = document.getElementById('notes-list');
 
 let notes = [];
@@ -36,7 +37,7 @@ function createNoteElement(note) {
     delBtn.setAttribute('title', 'Delete note');
     delBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 6h18M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6M10 6V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 6h18M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6M10 6V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
     `;
 
@@ -93,6 +94,7 @@ function addNote() {
     notesListEl.prepend(el);
     const textarea = el.querySelector(`textarea[data-id="${id}"]`);
     if (textarea) {
+        
         // new notes are empty so width is full;
         autoResize(textarea);
         textarea.focus();
@@ -106,6 +108,12 @@ function deleteNote(id) {
     // remove the DOM element for the deleted note only
     const textarea = notesListEl.querySelector(`textarea[data-id="${id}"]`);
     if (textarea && textarea.parentElement) textarea.parentElement.remove();
+}
+
+function deleteAll() {
+    notes = [];
+    saveNotes();
+    notesListEl.innerHTML = '';
 }
 
 function autoResize(textarea) {
@@ -131,5 +139,6 @@ function autoShrinkToContent(textarea) {
 }
 
 addButton.addEventListener('click', addNote);
+deleteAllButton.addEventListener('click', deleteAll);
 
 document.addEventListener('DOMContentLoaded', loadNotes);
