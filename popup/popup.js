@@ -258,7 +258,7 @@ function renderNotes() {
     if (notes.length === 0) {
         const emptyMessage = document.createElement('div');
         emptyMessage.className = 'empty-state';
-        emptyMessage.textContent = 'No notes yet — create one to get started.';
+        emptyMessage.textContent = 'No notes yet, create one to get started.';
         notesListEl.appendChild(emptyMessage);
         return;
     }
