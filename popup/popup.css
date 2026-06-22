@@ -118,6 +118,25 @@ h1 #noteCounter {
 
 .delete-all:hover { background: var(--brown-btn-hover); }
 
+.empty-state {
+    padding: 20px 16px;
+    text-align: center;
+    color: var(--text-primary);
+    opacity: 0.75;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px dashed var(--border-color);
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 16px 0;
+}
+
+body.dark-mode .empty-state {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
 #notes-list {
     display: flex;
     flex-direction: column;

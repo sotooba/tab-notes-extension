@@ -255,6 +255,14 @@ function createNoteElement(note) {
 function renderNotes() {
     notesListEl.innerHTML = '';
 
+    if (notes.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'empty-state';
+        emptyMessage.textContent = 'No notes yet — create one to get started.';
+        notesListEl.appendChild(emptyMessage);
+        return;
+    }
+
     notes.forEach((note) => {
         const el = createNoteElement(note);
         notesListEl.appendChild(el);
