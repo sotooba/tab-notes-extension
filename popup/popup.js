@@ -59,6 +59,9 @@ function loadNotes() {
 function createNoteElement(note) {
     const container = document.createElement('div');
     container.className = 'note';
+    if (note.isTemporary) {
+        container.classList.add('temp-note');
+    }
 
     const textarea = document.createElement('textarea');
     textarea.className = 'note-textarea';
@@ -82,12 +85,25 @@ function createNoteElement(note) {
         note.content = textarea.value;
         autoResize(textarea);
 
-        if (saveTimers.has(note.id)) clearTimeout(saveTimers.get(note.id));
-        const t = setTimeout(() => {
-            saveNotes();
-            saveTimers.delete(note.id);
-        }, 700);
-        saveTimers.set(note.id, t);
+        // If temporary note now has content, convert it to permanent
+        if (note.isTemporary && textarea.value.trim() !== '') {
+            note.isTemporary = false;
+            container.classList.remove('temp-note');
+            if (saveTimers.has(note.id)) clearTimeout(saveTimers.get(note.id));
+            const t = setTimeout(() => {
+                saveNotes();
+                saveTimers.delete(note.id);
+            }, 700);
+            saveTimers.set(note.id, t);
+        } else if (!note.isTemporary) {
+            // Normal save behavior for existing notes
+            if (saveTimers.has(note.id)) clearTimeout(saveTimers.get(note.id));
+            const t = setTimeout(() => {
+                saveNotes();
+                saveTimers.delete(note.id);
+            }, 700);
+            saveTimers.set(note.id, t);
+        }
     });
 
     textarea.addEventListener('blur', () => {
@@ -95,7 +111,17 @@ function createNoteElement(note) {
             clearTimeout(saveTimers.get(note.id));
             saveTimers.delete(note.id);
         }
-        saveNotes();
+
+        // If note is empty after blur, delete it from DOM and storage
+        if (textarea.value.trim() === '') {
+            deleteNote(note.id);
+            return;
+        }
+
+        // Otherwise, save if not temporary
+        if (!note.isTemporary) {
+            saveNotes();
+        }
         autoShrinkToContent(textarea);
     });
 
@@ -119,19 +145,24 @@ function renderNotes() {
 
 
 function addNote() {
+    // Check if temporary note already exists
+    const existingTempNote = notesListEl.querySelector('.temp-note');
+    if (existingTempNote) {
+        const textarea = existingTempNote.querySelector('textarea');
+        if (textarea) textarea.focus();
+        return;
+    }
+
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-    const note = { id, content: '', createdAt: Date.now() };
+    const note = { id, content: '', createdAt: Date.now(), isTemporary: true };
     
-    // insert new note at the start of the data and DOM without re-rendering existing notes
+    // insert new temporary note at the start without saving to storage
     notes.unshift(note);
-    saveNotes();
 
     const el = createNoteElement(note);
     notesListEl.prepend(el);
     const textarea = el.querySelector(`textarea[data-id="${id}"]`);
     if (textarea) {
-
-        // new notes are empty so width is full;
         autoResize(textarea);
         textarea.focus();
     }
@@ -139,12 +170,21 @@ function addNote() {
 
 
 function deleteNote(id) {
+    // find the note before removing to check if it's temporary
+    const noteToDelete = notes.find((n) => n.id === id);
+    const isTemporary = noteToDelete && noteToDelete.isTemporary;
+
+    // remove note from array
     notes = notes.filter((n) => n.id !== id);
-    saveNotes();
 
     // remove the DOM element for the deleted note only
     const textarea = notesListEl.querySelector(`textarea[data-id="${id}"]`);
     if (textarea && textarea.parentElement) textarea.parentElement.remove();
+
+    // only save to storage if we removed a permanent note
+    if (!isTemporary) {
+        saveNotes();
+    }
 }
 
 
