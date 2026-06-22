@@ -39,8 +39,6 @@ Notes are stored with a small JSON shape, for example:
 
 ## Usage
 
-## Usage
-
 - **Add a note**: click the **+** icon in the header to create a new note (it starts as temporary until you type).
 - **Edit a note**: type directly into a note card; changes autosave after a short debounce.
 - **Pin/unpin**: click the pin icon on a note to toggle pinning; pinned notes stay at the top.
