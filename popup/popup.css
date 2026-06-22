@@ -205,6 +205,30 @@ h1 #noteCounter {
     opacity: 0;
 }
 
+.note-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--accent-brown);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 2px 8px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+body.dark-mode .note-badge {
+    background: rgba(38, 32, 24, 0.85);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.note-pin.pinned {
+    color: var(--accent-brown);
+}
+
 .note:hover .note-pin {
     opacity: 1;
     transform: scale(1.05);

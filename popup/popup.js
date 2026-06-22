@@ -123,9 +123,8 @@ function togglePin(id) {
         const lastPinnedIndex = notes.reduce((last, current, idx) => current.pinned ? idx : last, -1);
         notes.splice(lastPinnedIndex + 1, 0, note);
     } else {
-        const firstUnpinnedIndex = notes.findIndex((current) => !current.pinned);
-        const insertIndex = firstUnpinnedIndex === -1 ? notes.length : firstUnpinnedIndex;
-        notes.splice(insertIndex, 0, note);
+        const lastPinnedIndex = notes.reduce((last, current, idx) => current.pinned ? idx : last, -1);
+        notes.splice(lastPinnedIndex + 1, 0, note);
     }
 
     saveNotes();
@@ -169,6 +168,7 @@ function createNoteElement(note) {
     if (!note.isTemporary) {
         const pinBtn = document.createElement('button');
         pinBtn.className = 'note-pin icon-btn';
+        if (note.pinned) pinBtn.classList.add('pinned');
         pinBtn.type = 'button';
         pinBtn.title = note.pinned ? 'Unpin note' : 'Pin note';
         pinBtn.textContent = note.pinned ? '📌' : '📍';
@@ -179,6 +179,13 @@ function createNoteElement(note) {
         });
 
         container.appendChild(pinBtn);
+    }
+
+    if (note.pinned) {
+        const badge = document.createElement('span');
+        badge.className = 'note-badge';
+        badge.textContent = 'Pinned';
+        container.appendChild(badge);
     }
 
     container.appendChild(delBtn);
@@ -324,6 +331,10 @@ function moveDraggedNoteToEnd(draggedId) {
     updateNoteCounter();
 }
 
+function insertAfterPinned(note) {
+    const lastPinnedIndex = notes.reduce((last, current, idx) => current.pinned ? idx : last, -1);
+    notes.splice(lastPinnedIndex + 1, 0, note);
+}
 
 // List-level drag handlers
 notesListEl.addEventListener('dragover', (e) => {
@@ -389,11 +400,18 @@ function addNote() {
 
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const note = { id, content: '', createdAt: Date.now(), isTemporary: true, pinned: false };
-    // insert new temporary note at the start without saving to storage
-    notes.unshift(note);
+    // insert new temporary note below all pinned notes
+    const lastPinnedIndex = notes.reduce((last, current, idx) => current.pinned ? idx : last, -1);
+    notes.splice(lastPinnedIndex + 1, 0, note);
 
     const el = createNoteElement(note);
-    notesListEl.prepend(el);
+    const lastPinned = notesListEl.querySelector('.note.pinned:last-of-type');
+    if (lastPinned) {
+        lastPinned.insertAdjacentElement('afterend', el);
+    } else {
+        notesListEl.prepend(el);
+    }
+
     const textarea = el.querySelector(`textarea[data-id="${id}"]`);
 
     if (textarea) {
