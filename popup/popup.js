@@ -58,15 +58,32 @@ function updateNoteCounter() {
 }
 
 
+function sortNotes() {
+    notes = notes
+        .map((note, idx) => ({ note, idx }))
+        .sort((a, b) => {
+            if (a.note.pinned !== b.note.pinned) {
+                return a.note.pinned ? -1 : 1;
+            }
+            return a.idx - b.idx;
+        })
+        .map((item) => item.note);
+}
+
 function loadNotes() {
     chrome.storage.local.get([STORAGE_KEY], (result) => {
         if (result && Array.isArray(result[STORAGE_KEY])) {
-            notes = result[STORAGE_KEY];
+            notes = result[STORAGE_KEY].map((note) => ({
+                ...note,
+                pinned: Boolean(note.pinned),
+                isTemporary: Boolean(note.isTemporary),
+            }));
         }
         else {
             notes = [];
         }
 
+        sortNotes();
         renderNotes();
         updateNoteCounter();
     });
@@ -94,6 +111,28 @@ function enableDrag(container, note) {
     });
 }
 
+function togglePin(id) {
+    const index = notes.findIndex((note) => note.id === id);
+    if (index === -1) return;
+
+    const note = notes[index];
+    note.pinned = !note.pinned;
+
+    notes.splice(index, 1);
+    if (note.pinned) {
+        const lastPinnedIndex = notes.reduce((last, current, idx) => current.pinned ? idx : last, -1);
+        notes.splice(lastPinnedIndex + 1, 0, note);
+    } else {
+        const firstUnpinnedIndex = notes.findIndex((current) => !current.pinned);
+        const insertIndex = firstUnpinnedIndex === -1 ? notes.length : firstUnpinnedIndex;
+        notes.splice(insertIndex, 0, note);
+    }
+
+    saveNotes();
+    renderNotes();
+    updateNoteCounter();
+}
+
 
 // Create a DOM element for a single note, including textarea and delete button
 function createNoteElement(note) {
@@ -103,6 +142,8 @@ function createNoteElement(note) {
 
     if (note.isTemporary) {
         container.classList.add('temp-note');
+    } else if (note.pinned) {
+        container.classList.add('pinned');
     } else {
         enableDrag(container, note);
     }
@@ -124,6 +165,22 @@ function createNoteElement(note) {
     `;
 
     container.appendChild(textarea);
+
+    if (!note.isTemporary) {
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'note-pin icon-btn';
+        pinBtn.type = 'button';
+        pinBtn.title = note.pinned ? 'Unpin note' : 'Pin note';
+        pinBtn.textContent = note.pinned ? '📌' : '📍';
+
+        pinBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            togglePin(note.id);
+        });
+
+        container.appendChild(pinBtn);
+    }
+
     container.appendChild(delBtn);
 
     textarea.addEventListener('input', () => {
@@ -136,7 +193,7 @@ function createNoteElement(note) {
             container.classList.remove('temp-note');
 
             // enable dragging now that the note is permanent
-            enableDrag(container, note);
+            if (!note.pinned) enableDrag(container, note);
 
             updateNoteCounter();
 
@@ -271,9 +328,8 @@ function moveDraggedNoteToEnd(draggedId) {
 // List-level drag handlers
 notesListEl.addEventListener('dragover', (e) => {
     e.preventDefault();
-    const target = e.target.closest('.note');
+    const target = e.target.closest('.note:not(.pinned):not(.temp-note)');
     if (!target) return;
-    if (target.classList.contains('dragging') || target.classList.contains('temp-note')) return;
 
     const rect = target.getBoundingClientRect();
     const before = e.clientY < rect.top + rect.height / 2;
@@ -304,17 +360,14 @@ notesListEl.addEventListener('drop', (e) => {
     const draggedId = e.dataTransfer.getData('text/plain');
     if (!draggedId) return;
 
-    const target = e.target.closest('.note');
-    if (target && target.classList.contains('temp-note')) {
-        // ignore drops on temporary notes; treat as drop to end
+    const target = e.target.closest('.note:not(.pinned):not(.temp-note)');
+    if (!target) {
         moveDraggedNoteToEnd(draggedId);
-    } else if (target) {
+    } else {
         const rect = target.getBoundingClientRect();
         const before = e.clientY < rect.top + rect.height / 2;
         const targetId = target.getAttribute('data-id') || target.querySelector('textarea')?.getAttribute('data-id');
         if (targetId) moveDraggedNote(draggedId, targetId, before);
-    } else {
-        moveDraggedNoteToEnd(draggedId);
     }
 
     if (currentDragOverEl) {
@@ -335,8 +388,7 @@ function addNote() {
     }
 
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-    const note = { id, content: '', createdAt: Date.now(), isTemporary: true };
-
+    const note = { id, content: '', createdAt: Date.now(), isTemporary: true, pinned: false };
     // insert new temporary note at the start without saving to storage
     notes.unshift(note);
 

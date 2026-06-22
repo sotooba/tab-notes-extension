@@ -4,7 +4,7 @@
     --text-color: #111;
     --text-primary: #1f1f1f;
     --border-color: #D7D7D7;
-    --header-color: #5B3824;
+    --header-color: #69422b;
     --beige-btn: #F3E6D6;
     --beige-btn-hover: #E7D2B9;
     --brown-btn: #8B5E3C;
@@ -151,7 +151,7 @@ h1 #noteCounter {
     min-height: 44px;
     border: none;
     border-radius: 0;
-    padding: 8px 40px 8px 0;
+    padding: 8px 100px 8px 0;
     font-size: 14px;
     line-height: 1.6;
     background: var(--card-color);
@@ -184,6 +184,39 @@ h1 #noteCounter {
     padding: 6px;
     transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease, opacity .2s ease;
     opacity: 0;
+}
+
+.note-pin {
+    position: absolute;
+    top: 12px;
+    right: 54px;
+    border: none;
+    background: var(--beige-btn);
+    color: var(--text-color);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    transition: background-color .2s ease, transform .2s ease, opacity .2s ease;
+    opacity: 0;
+}
+
+.note:hover .note-pin {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.note.pinned {
+    border-color: var(--header-color);
+   
+}
+
+body.dark-mode .note.pinned {
+    border-color: var(--header-color);
 }
 
 .note-delete svg {
