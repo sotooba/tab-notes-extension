@@ -9,6 +9,8 @@ const notesListEl = document.getElementById('notes-list');
 let notes = [];
 const saveTimers = new Map();
 
+
+// Load saved theme from localStorage and apply it on popup open
 function loadTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
     if (savedTheme === 'dark') {
@@ -20,6 +22,7 @@ function loadTheme() {
     }
 }
 
+// Toggle between light and dark themes,
 function toggleTheme() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     if (isDarkMode) {
@@ -33,9 +36,12 @@ function toggleTheme() {
     }
 }
 
+
+// Save notes to chrome.storage.local whenever they are added, edited, or deleted
 function saveNotes() {
     chrome.storage.local.set({ [STORAGE_KEY]: notes });
 }
+
 
 function loadNotes() {
     chrome.storage.local.get([STORAGE_KEY], (result) => {
@@ -48,6 +54,8 @@ function loadNotes() {
     });
 }
 
+
+// Create a DOM element for a single note, including textarea and delete button
 function createNoteElement(note) {
     const container = document.createElement('div');
     container.className = 'note';
@@ -98,15 +106,17 @@ function createNoteElement(note) {
     return container;
 }
 
+
 function renderNotes() {
     notesListEl.innerHTML = '';
     notes.forEach((note) => {
         const el = createNoteElement(note);
         notesListEl.appendChild(el);
         const ta = el.querySelector('textarea');
-        if (ta && ta.value && ta.value.trim() !== '') autoResize(ta);
+        if (ta) autoResize(ta);
     });
 }
+
 
 function addNote() {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -127,6 +137,7 @@ function addNote() {
     }
 }
 
+
 function deleteNote(id) {
     notes = notes.filter((n) => n.id !== id);
     saveNotes();
@@ -136,11 +147,13 @@ function deleteNote(id) {
     if (textarea && textarea.parentElement) textarea.parentElement.remove();
 }
 
+
 function deleteAll() {
     notes = [];
     saveNotes();
     notesListEl.innerHTML = '';
 }
+
 
 function autoResize(textarea) {
     // height: fit content
@@ -151,13 +164,16 @@ function autoResize(textarea) {
     textarea.style.width = '100%';
 }
 
+
 function autoShrinkToContent(textarea) {
     autoResize(textarea);
 }
 
+
 addButton.addEventListener('click', addNote);
 deleteAllButton.addEventListener('click', deleteAll);
 themeToggle.addEventListener('click', toggleTheme);
+
 
 document.addEventListener('DOMContentLoaded', () => {
     loadTheme();

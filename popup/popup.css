@@ -122,7 +122,7 @@ h1 {
     background: var(--card-color);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 18px 16px 24px;
+    padding: 16px;
     box-shadow: var(--shadow-light);
     transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
@@ -141,10 +141,10 @@ h1 {
     width: 100%;
     resize: none;
     overflow: hidden;
-    min-height: 80px;
+    min-height: 44px;
     border: none;
     border-radius: 0;
-    padding: 10px 20px 10px 12px;
+    padding: 8px 40px 8px 0;
     font-size: 14px;
     line-height: 1.6;
     background: var(--card-color);
