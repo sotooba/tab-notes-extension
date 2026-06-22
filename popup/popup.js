@@ -5,6 +5,7 @@ const addButton = document.getElementById('add-note');
 const deleteAllButton = document.getElementById('delete-all');
 const themeToggle = document.getElementById('theme-toggle');
 const notesListEl = document.getElementById('notes-list');
+const noteCounterEl = document.getElementById('noteCounter');
 
 let notes = [];
 const saveTimers = new Map();
@@ -13,6 +14,7 @@ const saveTimers = new Map();
 // Load saved theme from localStorage and apply it on popup open
 function loadTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         themeToggle.textContent = '☀️';
@@ -25,6 +27,7 @@ function loadTheme() {
 // Toggle between light and dark themes,
 function toggleTheme() {
     const isDarkMode = document.body.classList.contains('dark-mode');
+
     if (isDarkMode) {
         document.body.classList.remove('dark-mode');
         localStorage.setItem(THEME_KEY, 'light');
@@ -43,14 +46,25 @@ function saveNotes() {
 }
 
 
+// Update the visible note counter (counts only saved notes)
+function updateNoteCounter() {
+    if (!noteCounterEl) return;
+    const count = notes.filter(n => !n.isTemporary).length;
+    noteCounterEl.textContent = `(${count})`;
+}
+
+
 function loadNotes() {
     chrome.storage.local.get([STORAGE_KEY], (result) => {
         if (result && Array.isArray(result[STORAGE_KEY])) {
             notes = result[STORAGE_KEY];
-        } else {
+        }
+        else {
             notes = [];
         }
+
         renderNotes();
+        updateNoteCounter();
     });
 }
 
@@ -59,6 +73,7 @@ function loadNotes() {
 function createNoteElement(note) {
     const container = document.createElement('div');
     container.className = 'note';
+
     if (note.isTemporary) {
         container.classList.add('temp-note');
     }
@@ -72,6 +87,7 @@ function createNoteElement(note) {
     const delBtn = document.createElement('button');
     delBtn.className = 'note-delete icon-btn';
     delBtn.setAttribute('title', 'Delete note');
+
     delBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M3 6h18M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6M10 6V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,19 +105,26 @@ function createNoteElement(note) {
         if (note.isTemporary && textarea.value.trim() !== '') {
             note.isTemporary = false;
             container.classList.remove('temp-note');
+
+            updateNoteCounter();
+
             if (saveTimers.has(note.id)) clearTimeout(saveTimers.get(note.id));
             const t = setTimeout(() => {
                 saveNotes();
                 saveTimers.delete(note.id);
             }, 700);
+
             saveTimers.set(note.id, t);
-        } else if (!note.isTemporary) {
+
+        }
+        else if (!note.isTemporary) {
             // Normal save behavior for existing notes
             if (saveTimers.has(note.id)) clearTimeout(saveTimers.get(note.id));
             const t = setTimeout(() => {
                 saveNotes();
                 saveTimers.delete(note.id);
             }, 700);
+
             saveTimers.set(note.id, t);
         }
     });
@@ -135,6 +158,7 @@ function createNoteElement(note) {
 
 function renderNotes() {
     notesListEl.innerHTML = '';
+
     notes.forEach((note) => {
         const el = createNoteElement(note);
         notesListEl.appendChild(el);
@@ -147,6 +171,7 @@ function renderNotes() {
 function addNote() {
     // Check if temporary note already exists
     const existingTempNote = notesListEl.querySelector('.temp-note');
+
     if (existingTempNote) {
         const textarea = existingTempNote.querySelector('textarea');
         if (textarea) textarea.focus();
@@ -162,6 +187,7 @@ function addNote() {
     const el = createNoteElement(note);
     notesListEl.prepend(el);
     const textarea = el.querySelector(`textarea[data-id="${id}"]`);
+
     if (textarea) {
         autoResize(textarea);
         textarea.focus();
@@ -179,12 +205,14 @@ function deleteNote(id) {
 
     // remove the DOM element for the deleted note only
     const textarea = notesListEl.querySelector(`textarea[data-id="${id}"]`);
+    
     if (textarea && textarea.parentElement) textarea.parentElement.remove();
 
     // only save to storage if we removed a permanent note
     if (!isTemporary) {
         saveNotes();
     }
+    updateNoteCounter();
 }
 
 
@@ -192,6 +220,7 @@ function deleteAll() {
     notes = [];
     saveNotes();
     notesListEl.innerHTML = '';
+    updateNoteCounter();
 }
 
 

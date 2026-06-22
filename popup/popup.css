@@ -49,6 +49,13 @@ h1 {
     transition: color 0.3s ease;
 }
 
+h1 #noteCounter {
+    font-size: 20px;
+    color: var(--text-color);
+    opacity: 0.9;
+    transition: color 0.3s ease, opacity 0.2s ease;
+}
+
 .header {
     display: flex;
     align-items: center;
