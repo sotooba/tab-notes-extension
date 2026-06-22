@@ -23,20 +23,6 @@ A lightweight Chromium-based browser extension for quick, persistent notes scope
 - If a temporary note is left empty (for example you blur the textarea without entering text), it will be removed automatically.
 - Notes are stored persistently using the browser storage API; theme preference is stored in `localStorage`.
 
-## Data model
-
-Notes are stored with a small JSON shape, for example:
-
-```json
-{
-  "id": "<uuid>",
-  "content": "...",
-  "createdAt": 1680000000000,
-  "isTemporary": false,
-  "pinned": false
-}
-```
-
 ## Usage
 
 - **Add a note**: click the **+** icon in the header to create a new note (it starts as temporary until you type).
