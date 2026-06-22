@@ -443,6 +443,9 @@ function deleteNote(id) {
 
 
 function deleteAll() {
+    const confirmed = window.confirm('Delete all notes? This cannot be undone.');
+    if (!confirmed) return;
+
     notes = [];
     saveNotes();
     notesListEl.innerHTML = '';
