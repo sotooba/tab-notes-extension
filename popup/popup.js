@@ -9,6 +9,8 @@ const noteCounterEl = document.getElementById('noteCounter');
 
 let notes = [];
 const saveTimers = new Map();
+let currentDragId = null;
+let currentDragOverEl = null;
 
 
 // Load saved theme from localStorage and apply it on popup open
@@ -42,7 +44,9 @@ function toggleTheme() {
 
 // Save notes to chrome.storage.local whenever they are added, edited, or deleted
 function saveNotes() {
-    chrome.storage.local.set({ [STORAGE_KEY]: notes });
+    // Persist only permanent (saved) notes
+    const toSave = notes.filter(n => !n.isTemporary);
+    chrome.storage.local.set({ [STORAGE_KEY]: toSave });
 }
 
 
@@ -68,14 +72,39 @@ function loadNotes() {
     });
 }
 
+// Attach drag handlers to a permanent note container
+function enableDrag(container, note) {
+    container.draggable = true;
+
+    container.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', note.id);
+        e.dataTransfer.effectAllowed = 'move';
+        container.classList.add('dragging');
+        currentDragId = note.id;
+    });
+
+    container.addEventListener('dragend', () => {
+        container.classList.remove('dragging');
+        currentDragId = null;
+
+        if (currentDragOverEl) {
+            currentDragOverEl.classList.remove('drag-over-before', 'drag-over-after');
+            currentDragOverEl = null;
+        }
+    });
+}
+
 
 // Create a DOM element for a single note, including textarea and delete button
 function createNoteElement(note) {
     const container = document.createElement('div');
     container.className = 'note';
+    container.setAttribute('data-id', note.id);
 
     if (note.isTemporary) {
         container.classList.add('temp-note');
+    } else {
+        enableDrag(container, note);
     }
 
     const textarea = document.createElement('textarea');
@@ -105,6 +134,9 @@ function createNoteElement(note) {
         if (note.isTemporary && textarea.value.trim() !== '') {
             note.isTemporary = false;
             container.classList.remove('temp-note');
+
+            // enable dragging now that the note is permanent
+            enableDrag(container, note);
 
             updateNoteCounter();
 
@@ -168,6 +200,130 @@ function renderNotes() {
 }
 
 
+// Move dragged note in the notes array before/after the targetId, then persist
+function moveDraggedNote(draggedId, targetId, before = true) {
+    // Reorder only permanent notes; keep temporary notes in their original positions
+    const savedNotes = notes.filter(n => !n.isTemporary).slice();
+    const draggedSavedIndex = savedNotes.findIndex(n => n.id === draggedId);
+
+    if (draggedSavedIndex === -1) return;
+    const [draggedSaved] = savedNotes.splice(draggedSavedIndex, 1);
+
+    const targetSavedIndex = savedNotes.findIndex(n => n.id === targetId);
+    let insertSavedIndex = targetSavedIndex;
+
+    if (!before) insertSavedIndex = targetSavedIndex + 1;
+
+    if (targetSavedIndex === -1) {
+        savedNotes.push(draggedSaved);
+    } else {
+        if (insertSavedIndex > savedNotes.length) insertSavedIndex = savedNotes.length;
+        savedNotes.splice(insertSavedIndex, 0, draggedSaved);
+    }
+
+    // Rebuild notes array: keep temp notes at their positions, fill permanent slots from savedNotes
+    const newNotes = [];
+    let savedIter = 0;
+    for (const n of notes) {
+        if (n.isTemporary) {
+            newNotes.push(n);
+        } else {
+            newNotes.push(savedNotes[savedIter++]);
+        }
+    }
+    // If there were no temporary notes and lengths differ, ensure remaining saved ones are appended
+    while (savedIter < savedNotes.length) {
+        newNotes.push(savedNotes[savedIter++]);
+    }
+
+    notes = newNotes;
+    saveNotes();
+    renderNotes();
+    updateNoteCounter();
+}
+
+
+function moveDraggedNoteToEnd(draggedId) {
+    const savedNotes = notes.filter(n => !n.isTemporary).slice();
+    const draggedSavedIndex = savedNotes.findIndex(n => n.id === draggedId);
+
+    if (draggedSavedIndex === -1) return;
+    const [draggedSaved] = savedNotes.splice(draggedSavedIndex, 1);
+
+    savedNotes.push(draggedSaved);
+
+    // rebuild notes array keeping temp notes in place
+    const newNotes = [];
+    let savedIter = 0;
+    for (const n of notes) {
+        if (n.isTemporary) newNotes.push(n);
+        else newNotes.push(savedNotes[savedIter++]);
+    }
+    while (savedIter < savedNotes.length) newNotes.push(savedNotes[savedIter++]);
+
+    notes = newNotes;
+    saveNotes();
+    renderNotes();
+    updateNoteCounter();
+}
+
+
+// List-level drag handlers
+notesListEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const target = e.target.closest('.note');
+    if (!target) return;
+    if (target.classList.contains('dragging') || target.classList.contains('temp-note')) return;
+
+    const rect = target.getBoundingClientRect();
+    const before = e.clientY < rect.top + rect.height / 2;
+
+    if (currentDragOverEl && currentDragOverEl !== target) {
+        currentDragOverEl.classList.remove('drag-over-before', 'drag-over-after');
+    }
+
+    currentDragOverEl = target;
+    target.classList.add(before ? 'drag-over-before' : 'drag-over-after');
+});
+
+
+notesListEl.addEventListener('dragleave', (e) => {
+    const related = e.relatedTarget;
+    // if leaving the list entirely, clear any highlights
+    if (!related || !notesListEl.contains(related)) {
+        if (currentDragOverEl) {
+            currentDragOverEl.classList.remove('drag-over-before', 'drag-over-after');
+            currentDragOverEl = null;
+        }
+    }
+});
+
+
+notesListEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (!draggedId) return;
+
+    const target = e.target.closest('.note');
+    if (target && target.classList.contains('temp-note')) {
+        // ignore drops on temporary notes; treat as drop to end
+        moveDraggedNoteToEnd(draggedId);
+    } else if (target) {
+        const rect = target.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        const targetId = target.getAttribute('data-id') || target.querySelector('textarea')?.getAttribute('data-id');
+        if (targetId) moveDraggedNote(draggedId, targetId, before);
+    } else {
+        moveDraggedNoteToEnd(draggedId);
+    }
+
+    if (currentDragOverEl) {
+        currentDragOverEl.classList.remove('drag-over-before', 'drag-over-after');
+        currentDragOverEl = null;
+    }
+});
+
+
 function addNote() {
     // Check if temporary note already exists
     const existingTempNote = notesListEl.querySelector('.temp-note');
@@ -180,7 +336,7 @@ function addNote() {
 
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const note = { id, content: '', createdAt: Date.now(), isTemporary: true };
-    
+
     // insert new temporary note at the start without saving to storage
     notes.unshift(note);
 
@@ -205,7 +361,7 @@ function deleteNote(id) {
 
     // remove the DOM element for the deleted note only
     const textarea = notesListEl.querySelector(`textarea[data-id="${id}"]`);
-    
+
     if (textarea && textarea.parentElement) textarea.parentElement.remove();
 
     // only save to storage if we removed a permanent note

@@ -196,6 +196,20 @@ h1 #noteCounter {
     opacity: 1;
 }
 
+/* Drag & drop visuals */
+.note.dragging {
+    opacity: 0.6;
+    transform: scale(0.995);
+}
+
+.note.drag-over-before {
+    border-top: 3px solid var(--accent-brown);
+}
+
+.note.drag-over-after {
+    border-bottom: 3px solid var(--accent-brown);
+}
+
 .note-delete:hover {
     background: var(--accent-brown-hover);
     transform: scale(1.05);
