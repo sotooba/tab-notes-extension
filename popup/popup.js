@@ -1,11 +1,37 @@
 const STORAGE_KEY = 'tabNotes.notes';
+const THEME_KEY = 'tabNotes.theme';
 
 const addButton = document.getElementById('add-note');
 const deleteAllButton = document.getElementById('delete-all');
+const themeToggle = document.getElementById('theme-toggle');
 const notesListEl = document.getElementById('notes-list');
 
 let notes = [];
 const saveTimers = new Map();
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.textContent = '☀️';
+    } else {
+        document.body.classList.remove('dark-mode');
+        themeToggle.textContent = '🌙';
+    }
+}
+
+function toggleTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    if (isDarkMode) {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem(THEME_KEY, 'light');
+        themeToggle.textContent = '🌙';
+    } else {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem(THEME_KEY, 'dark');
+        themeToggle.textContent = '☀️';
+    }
+}
 
 function saveNotes() {
     chrome.storage.local.set({ [STORAGE_KEY]: notes });
@@ -131,5 +157,9 @@ function autoShrinkToContent(textarea) {
 
 addButton.addEventListener('click', addNote);
 deleteAllButton.addEventListener('click', deleteAll);
+themeToggle.addEventListener('click', toggleTheme);
 
-document.addEventListener('DOMContentLoaded', loadNotes);
+document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
+    loadNotes();
+});

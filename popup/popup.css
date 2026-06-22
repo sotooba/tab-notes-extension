@@ -1,16 +1,52 @@
+:root {
+    --bg-color: #f5f7fb;
+    --card-color: #FFFFFF;
+    --text-color: #111;
+    --text-primary: #1f1f1f;
+    --border-color: #D7D7D7;
+    --header-color: #5B3824;
+    --beige-btn: #F3E6D6;
+    --beige-btn-hover: #E7D2B9;
+    --brown-btn: #8B5E3C;
+    --brown-btn-hover: #7A4F31;
+    --accent-brown: #9B6B43;
+    --accent-brown-hover: #7A4F31;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.14);
+}
+
+body.dark-mode {
+    --bg-color: #1a1a1a;
+    --card-color: #2a2a2a;
+    --text-color: #e0e0e0;
+    --text-primary: #f0f0f0;
+    --border-color: #444444;
+    --header-color: #d4af37;
+    --beige-btn: #3a3a3a;
+    --beige-btn-hover: #4a4a4a;
+    --brown-btn: #5a4a3a;
+    --brown-btn-hover: #6a5a4a;
+    --accent-brown: #6a5a4a;
+    --accent-brown-hover: #7a6a5a;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
 body {
     margin: 0;
     padding: 12px;
     width: 340px;
     font-family: Arial, sans-serif;
-    background: #f5f7fb;
-    color: #111;
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
     margin: 0;
     margin-left: 10px;
-    color: #5B3824;
+    color: var(--header-color);
+    transition: color 0.3s ease;
 }
 
 .header {
@@ -20,7 +56,6 @@ h1 {
     gap: 8px;
     margin-bottom: 10px;
 }
-    
 
 .controls {
     display: flex;
@@ -28,6 +63,26 @@ h1 {
     align-items: center;
     margin-bottom: 0;
     margin-right: 15px;
+}
+
+.theme-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--beige-btn);
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.theme-btn:hover {
+    background: var(--beige-btn-hover);
+    transform: scale(1.1);
 }
 
 .icon-btn {
@@ -38,22 +93,23 @@ h1 {
     height: 34px;
     border-radius: 8px;
     border: none;
-    background: #F3E6D6; 
-    color: #5B3824; 
+    background: var(--beige-btn);
+    color: var(--header-color);
     cursor: pointer;
     padding: 4px;
+    transition: all 0.3s ease;
 }
 
 .icon-btn svg { display: block; }
 
-.icon-btn:hover { background: #E7D2B9; }
+.icon-btn:hover { background: var(--beige-btn-hover); }
 
 .delete-all {
-    background: #8B5E3C; 
+    background: var(--brown-btn);
     color: #ffffff;
 }
 
-.delete-all:hover { background: #7A4F31; }
+.delete-all:hover { background: var(--brown-btn-hover); }
 
 #notes-list {
     display: flex;
@@ -63,16 +119,16 @@ h1 {
 
 .note {
     position: relative;
-    background: #FFFFFF;
-    border: 1px solid #D7D7D7;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 18px 16px 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    box-shadow: var(--shadow-light);
+    transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
 
 .note:hover {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    box-shadow: var(--shadow-hover);
     transform: translateY(-1px);
 }
 
@@ -91,11 +147,17 @@ h1 {
     padding: 10px 20px 10px 12px;
     font-size: 14px;
     line-height: 1.6;
-    background: transparent;
-    color: #1f1f1f;
+    background: var(--card-color);
+    color: var(--text-primary);
     display: block;
     box-sizing: border-box;
     outline: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.note-textarea::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
 }
 
 .note-delete {
@@ -103,7 +165,7 @@ h1 {
     top: 12px;
     right: 12px;
     border: none;
-    background: #9B6B43;
+    background: var(--accent-brown);
     color: #ffffff;
     width: 36px;
     height: 36px;
@@ -128,6 +190,6 @@ h1 {
 }
 
 .note-delete:hover {
-    background: #7A4F31;
+    background: var(--accent-brown-hover);
     transform: scale(1.05);
 }
