@@ -1,55 +1,79 @@
 # Tab Notes
 
-A lightweight Chromium-based browser extension for taking quick, persistent notes. Add multiple notes, edit them on the fly, and manage them all from a convenient popup interface. All notes are automatically saved to the browser's local storage.
+A lightweight Chromium-based browser extension for quick, persistent notes scoped to your browser. Notes live in a compact popup, autosave as you type, and persist between browser sessions.
 
-## Features
+Version: 1.1.0 — 2026-06-22
 
-- **Multi-note support** : Create and manage multiple notes simultaneously
-- **Instant autosave** : Notes save automatically as you type
-- **Delete individual notes** : Remove specific notes with a single click
-- **Delete all notes** : Clear all notes at once using the delete-all button
-- **Persistent storage** : Notes survive browser restarts using local storage
-- **Cozy UI** : Modern card-based layout with smooth hover effects
-- **Lightweight** : Minimal overhead, perfect for a browser extension
+## Highlights
 
-## Installation
+- Multi-note support: create and manage many notes in the popup
+- Autosave: edits persist automatically with a brief debounce
+- Temporary notes: new notes start as temporary and are not persisted or counted until content is added
+- Pinning: pin important notes to keep them at the top of the list
+- Drag & drop: reorder permanent notes (dragging ignores pinned notes)
+- Note counter: header counter shows number of saved (non-temporary) notes
+- Delete individual / Delete all: remove single notes or clear all (delete-all asks for confirmation)
+- Dark mode: toggle a compact dark theme; the theme preference is stored locally
+- Empty-state UI: helpful placeholder when there are no notes yet
 
-### From GitHub
+## New / Notable behavior
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/sotooba/tab-notes-extension.git
-   cd tab-notes-extension
-   ```
+- New notes are inserted directly below any pinned notes so your pinned section stays at the top.
+- Pinned notes are excluded from drag-and-drop reordering to avoid accidental moves.
+- If a temporary note is left empty (for example you blur the textarea without entering text), it will be removed automatically.
+- Notes are stored persistently using the browser storage API; theme preference is stored in `localStorage`.
 
-2. **Open Chrome/Chromium browser and navigate to the extensions page:**
-   - Type `[your browser name]://extensions` in the address bar
-   - Or go to **Menu** → **More Tools** → **Extensions**
+## Data model
 
-3. **Enable Developer Mode:**
-   - Toggle **Developer Mode** in the top or bottom corner
+Notes are stored with a small JSON shape, for example:
 
-4. **Load the unpacked extension:**
-   - Click **Load unpacked**
-   - Navigate to the `tab-notes-extension` folder and select it
-
-5. **Verify installation:**
-   - The Tab Notes icon should appear in your browser toolbar
-   - Click the icon to open the notes popup
-
-### Alternative: Download as ZIP
-
-1. Visit the GitHub repository
-2. Click **Code** → **Download ZIP**
-3. Extract the ZIP file
-4. Follow steps 2–4 from the "Clone the repository" section above
+```json
+{
+  "id": "<uuid>",
+  "content": "...",
+  "createdAt": 1680000000000,
+  "isTemporary": false,
+  "pinned": false
+}
+```
 
 ## Usage
 
-- **Add a note** : Click the **+** icon to create a new note
-- **Edit a note** : Type or paste text directly into any note card
-- **Delete a note** : Hover over a note card and click the trash icon
-- **Delete all notes** : Click the trash icon in the header to remove all notes at once
+- Add a note: click the **+** icon in the header to create a new note (it starts as temporary until you type).
+- Edit a note: type directly into a note card; changes autosave after a short debounce.
+- Pin/unpin: click the pin icon on a note to toggle pinning; pinned notes stay at the top.
+- Reorder notes: drag permanent (non-pinned) notes to reorder them; ordering persists.
+- Delete a note: click the delete/trash icon on a note card to remove it.
+- Delete all: click the delete-all button in the header — you'll be asked to confirm.
+- Toggle theme: use the theme button in the header to switch dark/light; the choice persists.
+
+## Storage keys
+
+- Notes are persisted via the extension storage layer (see [popup/popup.js](popup/popup.js)) under the `tabNotes.notes` key.
+- Theme preference is saved in `localStorage` under `tabNotes.theme` (see [popup/popup.js](popup/popup.js)).
+
+## Installation
+
+1. Clone or download this repository:
+
+```bash
+git clone https://github.com/sotooba/tab-notes-extension.git
+cd tab-notes-extension
+```
+
+2. Open your Chromium-based browser's Extensions page (e.g. `chrome://extensions`).
+3. Enable **Developer mode** and click **Load unpacked**.
+4. Select the `tab-notes-extension` folder.
+
+The extension icon should appear in the toolbar, click it to open the popup.
+
+## Files of interest
+
+- Popup UI and behavior: [popup/popup.html](popup/popup.html), [popup/popup.css](popup/popup.css), [popup/popup.js](popup/popup.js)
+
+## Contributing
+
+Contributions, bug reports and feature requests are welcome. Open an issue or submit a pull request on the repository.
 
 ## License
 
